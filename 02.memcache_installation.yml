@@ -1,6 +1,9 @@
-- hosts: all
+- name: install memcached
+  hosts: all
   vars:
     package: memcached
+    max_conn: 2048
+
   tasks:
     - name: install {{ package }}
       yum:
@@ -12,12 +15,14 @@
         src: ./configures/memcached.j2
         dest: /etc/sysconfig/memcached
         backup: yes
+      notify:
+        - restart {{ package }}
 
     - name: systemctl {{ package }} and enable it
       systemd:
         name: "{{ package }}"
-        enabled: no
-        state: stopped
+        enabled: yes
+        state: started
 
     - name: check {{ package }} status
       shell:
@@ -38,3 +43,11 @@
     - name: output memcached config file
       debug:
         var: mem_conf.stdout_lines
+
+  handlers:
+    - name: restart {{ package }}
+      systemd:
+        name: "{{ package }}"
+        state: restarted
+
+
