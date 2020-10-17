@@ -1,0 +1,40 @@
+- hosts: all
+  vars:
+    package: memcached
+  tasks:
+    - name: install {{ package }}
+      yum:
+        name: "{{ package }}"
+        state: present
+
+    - name: configure {{ package }}
+      template:
+        src: ./configures/memcached.j2
+        dest: /etc/sysconfig/memcached
+        backup: yes
+
+    - name: systemctl {{ package }} and enable it
+      systemd:
+        name: "{{ package }}"
+        enabled: no
+        state: stopped
+
+    - name: check {{ package }} status
+      shell:
+        cmd: systemctl status {{ package }}
+      register: status
+
+    - name: output memcached status
+      debug:
+        msg:
+        - "commands: systemctl status {{ package }}"
+        - "{{ status.stdout_lines }}" 
+
+    - name: check memcached config file
+      shell:
+        cmd: cat /etc/sysconfig/memcached
+      register: mem_conf
+
+    - name: output memcached config file
+      debug:
+        var: mem_conf.stdout_lines

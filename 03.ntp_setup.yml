@@ -1,0 +1,21 @@
+- hosts: all
+  tasks:
+    - name: setup ntp service
+      template:
+        src: ./configures/chrony.conf.j2 
+        dest: /etc/chrony.conf
+        backup: yes
+
+    - name: restart ntp server
+      systemd:
+        name: chronyd
+        state: started
+        enabled: yes
+
+    - name: check status
+      shell: systemctl status chronyd
+      register: status
+
+    - name: output chronyd status
+      debug:
+        var: status.stdout_lines
