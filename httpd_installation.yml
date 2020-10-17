@@ -1,0 +1,33 @@
+- hosts: webserver
+  vars:
+    package_1: httpd
+  tasks:
+    - name: install {{ package_1 }}
+      yum:
+        name: "{{ package_1 }}"
+        state: present
+
+    - name: start {{ package_1 }}
+      service:
+        name: "{{ package_1 }}"
+        state: started
+        enabled: yes
+
+    - name: add firewall rule
+      firewalld:
+        service: http
+        permanent: yes
+        state: enabled 
+        zone: public
+        immediate: yes
+
+    - name: check {{ package_1 }} status
+      shell: ps ax | grep {{ package_1 }} | grep -v grep
+      register: package_1_status
+
+    - name: output httpd status
+      debug:
+        msg:
+          - "Command: '{{ package_1_status.cmd }}'"
+          - "{{ package_1_status.stdout_lines }}"
+        
